@@ -10,32 +10,65 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var events: [Item]
+    @State private var showingAddEvent = false
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        NavigationStack {
+            ZStack {
+                List {
+                    ForEach(events) { event in
+                        NavigationLink {
+                            EventDetailView(event: event)
+                        } label: {
+                            HStack {
+                                Text(event.emoji)
+                                    .font(.title)
+                                    .padding(.trailing, 10)
+                                
+                                VStack(alignment: .leading) {
+                                    Text(event.title)
+                                        .font(.headline)
+                                    Text(event.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .onDelete(perform: deleteItems)
+                }
+                .navigationTitle("我的事件")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        EditButton()
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                
+                // 浮动添加按钮
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            showingAddEvent = true
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.title)
+                                .frame(width: 60, height: 60)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                                .shadow(radius: 4)
+                        }
+                        .padding()
                     }
                 }
             }
-        } detail: {
-            Text("Select an item")
+            .sheet(isPresented: $showingAddEvent) {
+                AddEventView()
+            }
         }
     }
 
@@ -49,7 +82,7 @@ struct ContentView: View {
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(events[index])
             }
         }
     }
