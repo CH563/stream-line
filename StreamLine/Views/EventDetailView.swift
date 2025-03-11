@@ -17,10 +17,9 @@ struct EventDetailView: View {
 
                         Text(
                             event.timestamp,
-                            format: Date.FormatStyle(
-                                date: .complete, time: .standard)
+                            format: Date.FormatStyle(date: .complete, time: .standard)
                         )
-                        .foregroundColor(.secondary)
+                            .foregroundColor(.secondary)
                     }
                 }
                 .padding()
