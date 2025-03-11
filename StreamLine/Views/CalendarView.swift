@@ -1,16 +1,16 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct CalendarView: View {
     let events: [Item]
     @State private var selectedDate = Date()
-    
+
     private var calendar: Calendar {
         var calendar = Calendar.current
-        calendar.firstWeekday = 2 // 设置周一为一周的第一天
+        calendar.firstWeekday = 2  // 设置周一为一周的第一天
         return calendar
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -19,9 +19,9 @@ struct CalendarView: View {
                     selectedDate: $selectedDate,
                     events: events
                 )
-                
+
                 Divider()
-                
+
                 // 选中日期的事件列表
                 List {
                     let dayEvents = eventsForSelectedDate()
@@ -38,13 +38,16 @@ struct CalendarView: View {
                                 HStack {
                                     Text(event.emoji)
                                         .font(.title2)
-                                    
+
                                     VStack(alignment: .leading) {
                                         Text(event.title)
                                             .font(.headline)
-                                        Text(event.timestamp, format: .dateTime.hour().minute())
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                        Text(
+                                            event.timestamp,
+                                            format: .dateTime.hour().minute()
+                                        )
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     }
                                 }
                             }
@@ -55,11 +58,11 @@ struct CalendarView: View {
             .navigationTitle("日历视图")
         }
     }
-    
+
     private func eventsForSelectedDate() -> [Item] {
         let startOfDay = calendar.startOfDay(for: selectedDate)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        
+
         return events.filter { event in
             event.timestamp >= startOfDay && event.timestamp < endOfDay
         }
@@ -69,15 +72,15 @@ struct CalendarView: View {
 struct CalendarGridView: View {
     @Binding var selectedDate: Date
     let events: [Item]
-    
+
     @State private var currentMonth = Date()
-    
+
     private var calendar: Calendar {
         var calendar = Calendar.current
-        calendar.firstWeekday = 2 // 设置周一为一周的第一天
+        calendar.firstWeekday = 2  // 设置周一为一周的第一天
         return calendar
     }
-    
+
     var body: some View {
         VStack {
             // 月份选择器
@@ -85,21 +88,21 @@ struct CalendarGridView: View {
                 Button(action: previousMonth) {
                     Image(systemName: "chevron.left")
                 }
-                
+
                 Spacer()
-                
+
                 Text(monthYearFormatter.string(from: currentMonth))
                     .font(.title2)
                     .fontWeight(.semibold)
-                
+
                 Spacer()
-                
+
                 Button(action: nextMonth) {
                     Image(systemName: "chevron.right")
                 }
             }
             .padding(.horizontal)
-            
+
             // 星期标题
             HStack {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
@@ -109,14 +112,18 @@ struct CalendarGridView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
+
             // 日历网格
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 7),
+                spacing: 10
+            ) {
                 ForEach(daysInMonth(), id: \.self) { date in
                     if let date = date {
                         DayView(
                             date: date,
-                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                            isSelected: calendar.isDate(
+                                date, inSameDayAs: selectedDate),
                             hasEvents: hasEvents(on: date),
                             eventEmojis: eventEmojisForDate(date)
                         )
@@ -134,13 +141,13 @@ struct CalendarGridView: View {
         }
         .padding(.vertical)
     }
-    
+
     private var monthYearFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy年MM月"
         return formatter
     }
-    
+
     private var weekdaySymbols: [String] {
         let symbols = calendar.shortWeekdaySymbols
         // 调整顺序，使周一在前
@@ -149,60 +156,68 @@ struct CalendarGridView: View {
         }
         return symbols
     }
-    
+
     private func daysInMonth() -> [Date?] {
         let range = calendar.range(of: .day, in: .month, for: currentMonth)!
-        let firstDay = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
-        
+        let firstDay = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: currentMonth))!
+
         // 获取月份第一天是星期几
         let firstWeekday = calendar.component(.weekday, from: firstDay)
-        
+
         // 计算需要在第一天之前添加多少个空白单元格
         let offsetDays = (firstWeekday - calendar.firstWeekday + 7) % 7
-        
+
         var days = Array(repeating: nil as Date?, count: offsetDays)
-        
+
         for day in 1...range.count {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
+            if let date = calendar.date(
+                byAdding: .day, value: day - 1, to: firstDay)
+            {
                 days.append(date)
             }
         }
-        
+
         // 补齐最后一行
         let remainingCells = (7 - (days.count % 7)) % 7
         days += Array(repeating: nil as Date?, count: remainingCells)
-        
+
         return days
     }
-    
+
     private func hasEvents(on date: Date) -> Bool {
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        
+
         return events.contains { event in
             event.timestamp >= startOfDay && event.timestamp < endOfDay
         }
     }
-    
+
     private func eventEmojisForDate(_ date: Date) -> [String] {
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        
-        return events
+
+        return
+            events
             .filter { event in
                 event.timestamp >= startOfDay && event.timestamp < endOfDay
             }
             .map { $0.emoji }
     }
-    
+
     private func previousMonth() {
-        if let newDate = calendar.date(byAdding: .month, value: -1, to: currentMonth) {
+        if let newDate = calendar.date(
+            byAdding: .month, value: -1, to: currentMonth)
+        {
             currentMonth = newDate
         }
     }
-    
+
     private func nextMonth() {
-        if let newDate = calendar.date(byAdding: .month, value: 1, to: currentMonth) {
+        if let newDate = calendar.date(
+            byAdding: .month, value: 1, to: currentMonth)
+        {
             currentMonth = newDate
         }
     }
@@ -213,11 +228,11 @@ struct DayView: View {
     let isSelected: Bool
     let hasEvents: Bool
     let eventEmojis: [String]
-    
+
     private var calendar: Calendar {
         Calendar.current
     }
-    
+
     var body: some View {
         VStack {
             Text("\(calendar.component(.day, from: date))")
@@ -226,10 +241,11 @@ struct DayView: View {
                 .frame(width: 30, height: 30)
                 .background(isSelected ? Color.blue : Color.clear)
                 .clipShape(Circle())
-            
+
             if hasEvents {
                 HStack(spacing: 2) {
-                    ForEach(Array(Set(eventEmojis)).prefix(3), id: \.self) { emoji in
+                    ForEach(Array(Set(eventEmojis)).prefix(3), id: \.self) {
+                        emoji in
                         Text(emoji)
                             .font(.system(size: 10))
                     }
@@ -247,9 +263,13 @@ struct DayView: View {
 
 #Preview {
     let previewEvents = [
-        Item(timestamp: Date(), title: "测试事件1", eventDescription: "描述", emoji: "🎉"),
-        Item(timestamp: Date().addingTimeInterval(86400), title: "测试事件2", eventDescription: "描述", emoji: "🚀")
+        Item(
+            timestamp: Date(), title: "测试事件1", eventDescription: "描述",
+            emoji: "🎉"),
+        Item(
+            timestamp: Date().addingTimeInterval(86400), title: "测试事件2",
+            eventDescription: "描述", emoji: "🚀"),
     ]
-    
+
     return CalendarView(events: previewEvents)
-} 
+}

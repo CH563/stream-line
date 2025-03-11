@@ -5,8 +5,8 @@
 //  Created by Liwen on 2025/3/11.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -28,13 +28,17 @@ struct ContentView: View {
                                     Text(event.emoji)
                                         .font(.title)
                                         .padding(.trailing, 10)
-                                    
+
                                     VStack(alignment: .leading) {
                                         Text(event.title)
                                             .font(.headline)
-                                        Text(event.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                        Text(
+                                            event.timestamp,
+                                            format: Date.FormatStyle(
+                                                date: .numeric, time: .standard)
+                                        )
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     }
                                 }
                                 .padding(.vertical, 8)
@@ -48,7 +52,7 @@ struct ContentView: View {
                             EditButton()
                         }
                     }
-                    
+
                     // 浮动添加按钮
                     VStack {
                         Spacer()
@@ -77,7 +81,7 @@ struct ContentView: View {
                 Label("事件", systemImage: "list.bullet")
             }
             .tag(0)
-            
+
             // 日历标签页
             CalendarView(events: events)
                 .tabItem {
