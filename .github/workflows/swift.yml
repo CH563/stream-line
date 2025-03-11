@@ -1,0 +1,26 @@
+name: iOS PR Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_project:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: SwiftFormat
+        run: swiftformat . --lint
+      - name: SwiftLint
+        run: swiftlint lint --strict
+      - name: Build and Test
+        run: |
+          xcodebuild \
+           -project StreamLine.xcodeproj \
+           -scheme ["StreamLine" \
+           -sdk iphonesimulator \
+           -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0' \
+            test || exit 1
