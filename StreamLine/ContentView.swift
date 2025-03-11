@@ -12,63 +12,78 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var events: [Item]
     @State private var showingAddEvent = false
+    @State private var selectedTab = 0
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                List {
-                    ForEach(events) { event in
-                        NavigationLink {
-                            EventDetailView(event: event)
-                        } label: {
-                            HStack {
-                                Text(event.emoji)
-                                    .font(.title)
-                                    .padding(.trailing, 10)
-                                
-                                VStack(alignment: .leading) {
-                                    Text(event.title)
-                                        .font(.headline)
-                                    Text(event.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+        TabView(selection: $selectedTab) {
+            // 事件列表标签页
+            NavigationStack {
+                ZStack {
+                    List {
+                        ForEach(events) { event in
+                            NavigationLink {
+                                EventDetailView(event: event)
+                            } label: {
+                                HStack {
+                                    Text(event.emoji)
+                                        .font(.title)
+                                        .padding(.trailing, 10)
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(event.title)
+                                            .font(.headline)
+                                        Text(event.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
+                                .padding(.vertical, 8)
                             }
-                            .padding(.vertical, 8)
+                        }
+                        .onDelete(perform: deleteItems)
+                    }
+                    .navigationTitle("我的事件")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            EditButton()
                         }
                     }
-                    .onDelete(perform: deleteItems)
-                }
-                .navigationTitle("我的事件")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        EditButton()
-                    }
-                }
-                
-                // 浮动添加按钮
-                VStack {
-                    Spacer()
-                    HStack {
+                    
+                    // 浮动添加按钮
+                    VStack {
                         Spacer()
-                        Button(action: {
-                            showingAddEvent = true
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.title)
-                                .frame(width: 60, height: 60)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showingAddEvent = true
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.title)
+                                    .frame(width: 60, height: 60)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
+                            .padding()
                         }
-                        .padding()
                     }
                 }
+                .sheet(isPresented: $showingAddEvent) {
+                    AddEventView()
+                }
             }
-            .sheet(isPresented: $showingAddEvent) {
-                AddEventView()
+            .tabItem {
+                Label("事件", systemImage: "list.bullet")
             }
+            .tag(0)
+            
+            // 日历标签页
+            CalendarView(events: events)
+                .tabItem {
+                    Label("日历", systemImage: "calendar")
+                }
+                .tag(1)
         }
     }
 
